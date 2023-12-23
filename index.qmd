@@ -1,0 +1,225 @@
+--- 
+title: "実証分析入門"
+author: "長田悠生"
+format:
+    dashboard:
+        theme: yeti
+        orientation: rows
+        scrolling: true 
+        website:
+        nav-buttons:
+        - icon: github
+          href: https://github.com/Myxogastria0808/quarto_dashboards_demo
+---
+
+```{r}
+library(ggplot2)
+library(ggsci)
+library(dplyr)
+library(DT)
+
+#japan_data
+japan_data <- read.csv("homework_data.csv")
+
+YoY_vec <- c()
+for (i in 1:nrow(japan_data)) {
+  if (i == 1) {
+    YoY <- 0
+  } else {
+    YoY <- (japan_data$number_of_stores[i] - japan_data$number_of_stores[i - 1]) / japan_data$number_of_stores[i - 1]
+  }
+    YoY_vec <- append(YoY_vec, YoY)
+}
+
+japan_data <- cbind(
+  japan_data,
+  "YoY" = YoY_vec
+)
+
+#prefectures_data
+number_of_stores_by_prefecture_data <- read.csv("homework_data2.csv")
+population_data <- read.csv("FEI_PREF_231220223924.csv")
+
+prefectures_data <- full_join(
+  number_of_stores_by_prefecture_data,
+  population_data,
+  by = c("year" = "year", "prefecture" = "prefecture")
+)
+
+per_10000_population_vec <- c()
+for (i in ncol(prefectures_data)) {
+  per_10000_population <- (prefectures_data$number_of_stores / prefectures_data$population) * 10000
+  per_10000_population_vec <- append(
+    per_10000_population_vec, per_10000_population
+  )
+}
+
+prefectures_data <- cbind(
+  prefectures_data,
+  "per_10000_population" = per_10000_population_vec
+)
+```
+
+# Main
+
+::: {.card}
+<link href="./style.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+
+<h3>「東日本大震災が原因でコンビニ数が増加する」という主張は正しいかどうかを検証する。</h3>
+
+<p class="alert alert-info">
+    このサイトの内容は、統計を学習し始めて間もない学生の書いたものであるので、間違っている可能性があります。ご了承ください。
+</p>
+
+<p>東日本大震災をきっかけにコンビニ数が急増したという主張をしているサイトがありました。
+しかし、このサイトが根拠としていたのは、以下のようなものでした。</p>
+
+<p>以下、引用文<sup>(*)</sup></p>
+
+<p class="quote">全国のコンビニの数は、2011年から2014年まで、毎年2000店を超えるペースで増加しました。震災前の2010年から2011年の増加数は1031店だったので、2011年以降の3年間は、震災前の2倍以上のペースで増えたことになります。</p>
+
+> (*) $\cdots$ https://www3.nhk.or.jp/news/special/sakusakukeizai/20210311/390/
+
+<p>しかし、東日本大震災以外にもコンビニが増加した要因があるかもしれない。今回は、「東日本大震災が原因でコンビニ数が増加する」という主張が正しいのかどうかをできる限り調べてみることにしました。</p>
+
+<p>その他のいろいろな可能性として、以下のものを考えました。</p>
+
+**その他のいろいろな可能性**
+
+1. 2011年以降の3年間のコンビニの増加率は特筆すべき増加率ではなく、例年通りの増加率であった（2010~2011年にかけての増加数が例年に比べて少なかった）。
+2. 2011以降のどこかの地域（都道府県）又は全国で、人口が増加し、それに伴ってコンビニ数が増加した。
+
+<p>従って、以下の検証を行うことにしました。</p>
+
+<a href="#検証1" class="link-title">
+    <h4>検証1</h4>
+</a>
+<p>2011年以降の3年間のコンビニの増加率は特筆すべき増加率ではなく、例年通りの増加率であった（2010~2011年にかけての増加数が例年に比べて少なかった）。</p>
+
+<a href="#検証2" class="link-title">
+    <h4>検証2</h4>
+</a>
+<p>2011以降のどこかの地域（都道府県）又は全国で、人口が増加し、それに伴ってコンビニ数が増加した。</p>
+
+<style>
+    .quote {
+        background-color: rgb(230, 230, 230);
+        border-radius: 5px 5px 5px 5px;
+        padding: 10px;
+    }
+    .link-title {
+        color: rgb(0, 176, 183);
+        font-weight: 600;
+    }
+</style>
+:::
+
+# 検証1
+
+## Row {height="420px"}
+
+::: {.card}
+
+<h3 class="font-weight-bold">検証1</h3>
+
+**仮定: 2011年以降の3年間のコンビニの増加率は特筆すべき増加率ではなく、例年通りの増加率であった（2010~2011年にかけての増加数が例年に比べて少なかった）。**
+
+<br/>
+<br/>
+
+## 検証方法
+1. 全国のコンビニの店舗数のデータ（1983~2020年分）を用意する。
+2. 各年の前年に対する増加率を計算する。
+$$
+その年のコンビニの店舗数の増加率 = \frac{その年のコンビニの店舗数 - 前年のコンビニの店舗数}{前年のコンビニの店舗数}
+$$
+3. 棒グラフで計算結果を確認する。
+
+:::
+
+## Row {.tabset}
+
+```{r}
+#| title: 全国のコンビニエンスストアの店舗数の推移
+number_of_stores_bar <- ggplot(japan_data) +
+  geom_bar(aes(x = japan_data$year, y = japan_data$number_of_stores), stat="identity") +
+  labs(x = "年", y = "店舗数（店）") + 
+  ggtitle("日本のコンビニエンスストアの店舗数の推移") +
+  theme_bw(base_family = "HiraKakuProN-W3")
+
+print(number_of_stores_bar)
+```
+
+```{r}
+#| title: 日本のコンビニエンスストアの増加率 (前年比)
+legend.labels <- c("増加", "減少")
+
+YoY_bar <- ggplot(japan_data) +
+  geom_bar(aes(x = japan_data$year, y = japan_data$YoY, fill = japan_data$YoY < 0), stat="identity") +
+  labs(x = "年", y = "店舗の増加率") + 
+  ggtitle("日本のコンビニエンスストアの増加率 (前年比)") +
+  theme_bw(base_family = "HiraKakuProN-W3") +
+    theme(legend.position = "none")
+
+print(YoY_bar)
+```
+
+## Row
+
+::: {.card title="使用したデータ"}
+```{r}
+DT::datatable(japan_data)
+```
+
+>| データ引用元(一部、元データに追加しているデータがあります。): https://honkawa2.sakura.ne.jp/5616.html
+
+> 注) 国内のフランチャイズチェーン本部を対象とした年1回の調査(5~6月)による。店舗数は各チェーンの加盟店・直営店数(国内)の合計 (https://honkawa2.sakura.ne.jp/5616.htmlより引用)
+
+> 資料: 日本フランチャイズチェーン協会「JFA フランチャイズチェーン統計調査」(https://honkawa2.sakura.ne.jp/5616.htmlより引用)
+:::
+
+# 検証2
+
+## Row {height="390px"}
+
+::: {.card}
+
+<h3 class="font-weight-bold">検証2</h3>
+
+**仮定: 2011以降のどこかの地域（都道府県）又は全国で、人口が増加し、それに伴ってコンビニ数が増加した。**
+
+<br/>
+<br/>
+
+## 検証方法
+1. 各都道府県のコンビニの店舗数と人口のデータ（2012~2018年分）を用意する。
+2. 各都道府県の人口1万人当たりのコンビニの店舗数を調査する。
+$$
+その年の各都道府県の人口1万人当たりのコンビニの店舗数 = \frac{その年の各都道府県のコンビニの店舗数}{その年の各都道府県の人口} \times 10000
+$$
+3. 計算結果を確認する。
+
+:::
+
+## Row
+
+::: {.card title="使用したデータ"}
+```{r}
+DT::datatable(prefectures_data)
+```
+
+>| 各都道府県の人口のデータの引用元: https://www.e-stat.go.jp/regional-statistics/ssdsview/prefectures を加工して作成
+
+>| 出典: 政府統計の総合窓口(e-Stat)（https://www.e-stat.go.jp/）
+
+>| 各都道府県のコンビニの店舗数のデータの情報元 :https://uub.jp/pdr/m/cp.html
+
+>| 各都道府県のコンビニの店舗数のデータの出展1: 月刊コンビニ「2018年5月号、2017年5月号、2016年5月号」株式会社アール・アイ・シー (https://uub.jp/pdr/m/cp.htmlより引用)
+
+>| 各都道府県のコンビニの店舗数のデータの出展2: 月刊コンビニ「2015年5月号、2014年5月号、2013年5月号、2012年5月号」商業界 (https://uub.jp/pdr/m/cp.htmlより引用)
+
+>| 注) スリーエフ直営の3店舗（goozブランドの埼玉県1店と神奈川県2店）は、2018年の集計から除外。 (https://uub.jp/pdr/m/cp.htmlより引用)
+
+>| 注) 2016年3月末のココストアの店舗数は非公表のため、2016年2月末の店舗数を掲載。 (https://uub.jp/pdr/m/cp.htmlより引用)
+:::
