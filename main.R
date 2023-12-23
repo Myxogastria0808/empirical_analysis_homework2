@@ -67,24 +67,77 @@ prefectures_data <- cbind(
   "per_10000_population" = per_10000_population_vec
 )
 
-# print("===============")
-# print(data)
 
-# average_per_person_vec <- c()
-# range <- nrow(data) %/% 47
-# for (i in 1:range) {
-#   start <- 47 * (i - 1) + 1
-#   end <- start + 46
-#   average_per_person <- sum(data$per_person[start:end]) / 47
-#   average_per_person_vec <- append(average_per_person_vec, average_per_person)
-# }
+library(plotly)
+library(magrittr)
 
-# print(average_per_person_vec)
+# graph <- plot_ly(
+#   data = prefectures_data,
+#   x = ~population,
+#   y = ~number_of_stores,
+#   split = ~prefecture,
+#   type = "scatter"
+# )
 
-# print("summary")
+# print(graph)
 
-# print(summary(data))
+# graph <- plot_ly(
+#   data = prefectures_data,
+#   x = ~population,
+#   y = ~number_of_stores,
+#   color = ~year,
+#   type = "scatter"
+# )
 
-# print(barplot(average_per_person_vec))
+# print(graph)
 
-# #各都道府県
+# graph <- plot_ly(
+#   data = prefectures_data,
+#   x = ~population,
+#   y = ~year,
+#   z = ~number_of_stores,
+#   split = ~prefecture,
+#   type = "scatter3d"
+# )
+
+# print(graph)
+
+###############################################
+
+year_vec <- c(2012:2018)
+average_per_10000_population_vec <- c()
+range <- nrow(prefectures_data) %/% 47
+
+for (i in 1:range) {
+  start <- 47 * (i - 1) + 1
+  end <- start + 46
+  tokyo <- start + 12
+  average_per_10000_population <- (sum(prefectures_data$per_10000_population[start:end]) - prefectures_data$per_10000_population[tokyo] ) / 46
+  print(prefectures_data$per_10000_population[tokyo])
+  average_per_10000_population_vec <- append(average_per_10000_population_vec, average_per_10000_population)
+}
+
+average_per_10000_population_data <- data.frame(
+  year = year_vec,
+  average_per_10000_population = average_per_10000_population_vec
+)
+
+print(average_per_10000_population_data)
+
+print(
+ggplot(
+  average_per_10000_population_data,
+  aes(
+    x = year,
+    y = average_per_10000_population
+  )
+) + geom_bar(
+  stat = "identity"
+) + labs(
+  x = "year",
+  y = "average per 10000 population",
+) + scale_x_continuous(
+  breaks = seq(2012, 2018, 1)
+)
+
+)

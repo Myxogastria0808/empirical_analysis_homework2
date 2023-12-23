@@ -5,11 +5,12 @@ format:
     dashboard:
         theme: yeti
         orientation: rows
-        scrolling: true 
+        scrolling: true
+        logo: images/hello.jpg
         website:
         nav-buttons:
         - icon: github
-          href: https://github.com/Myxogastria0808/quarto_dashboards_demo
+          href: https://github.com/Myxogastria0808/empirical_analysis_homework2
 ---
 
 ```{r}
@@ -17,6 +18,8 @@ library(ggplot2)
 library(ggsci)
 library(dplyr)
 library(DT)
+library(plotly)
+library(magrittr)
 
 #japan_data
 japan_data <- read.csv("homework_data.csv")
@@ -144,28 +147,29 @@ $$
 #| title: 全国のコンビニエンスストアの店舗数の推移
 number_of_stores_bar <- ggplot(japan_data) +
   geom_bar(aes(x = japan_data$year, y = japan_data$number_of_stores), stat="identity") +
-  labs(x = "年", y = "店舗数（店）") + 
-  ggtitle("日本のコンビニエンスストアの店舗数の推移") +
-  theme_bw(base_family = "HiraKakuProN-W3")
+  labs(x = "year", y = "number of convenience stores") +
+  scale_x_continuous(breaks = seq(1983, 2020,1)) +
+  theme(axis.text.x = element_text(angle=60, vjust=1, hjust=1))
 
-print(number_of_stores_bar)
+number_of_stores_bar %>% plotly::ggplotly()
 ```
 
 ```{r}
 #| title: 日本のコンビニエンスストアの増加率 (前年比)
-legend.labels <- c("増加", "減少")
 
 YoY_bar <- ggplot(japan_data) +
   geom_bar(aes(x = japan_data$year, y = japan_data$YoY, fill = japan_data$YoY < 0), stat="identity") +
-  labs(x = "年", y = "店舗の増加率") + 
-  ggtitle("日本のコンビニエンスストアの増加率 (前年比)") +
-  theme_bw(base_family = "HiraKakuProN-W3") +
-    theme(legend.position = "none")
+  labs(x = "year", y = "percentage increase in the number of convenience stores") +
+  scale_x_continuous(breaks = seq(1983, 2020,1)) +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(angle=60, vjust=1, hjust=1)
+  )
 
-print(YoY_bar)
+YoY_bar %>% plotly::ggplotly()
 ```
 
-## Row
+## Row {.tabset}
 
 ::: {.card title="使用したデータ"}
 ```{r}
@@ -201,6 +205,163 @@ $$
 3. 計算結果を確認する。
 
 :::
+
+## Row
+
+```{r}
+#| title: 各都道府県の人口とコンビニの店舗数と年の関係
+
+plot_ly(
+  data = prefectures_data,
+  x = ~population,
+  y = ~year,
+  z = ~number_of_stores,
+  split = ~prefecture,
+  type = "scatter3d",
+  mode = "markers",
+  hoverinfo = "text",
+  text = ~paste(
+    "</br> number of convenience stores: ", number_of_stores,
+    "</br> population: ", population,
+    "</br> prefecture: ", prefecture,
+    "</br> year: ", year
+  ),
+  marker = list(size = 5)
+) %>% layout(
+  scene = list(
+    xaxis = list(
+      title = "population"
+    ),
+    yaxis = list(
+      title = "year"
+    ),
+    zaxis = list(
+      title = "number of convenience stores"
+    )
+  )
+)
+```
+
+## Row {.tabset}
+
+```{r}
+#| title: 各都道府県の人口とコンビニの店舗数の関係 + 都道府県
+
+plot_ly(
+  data = prefectures_data,
+  x = ~population,
+  y = ~number_of_stores,
+  split = ~prefecture,
+  type = "scatter",
+  mode = "markers",
+  hoverinfo = "text",
+  text = ~paste(
+    "</br> number of convenience stores: ", number_of_stores,
+    "</br> population: ", population,
+    "</br> prefecture: ", prefecture,
+    "</br> year: ", year
+  )
+) %>% layout(
+  xaxis = list(
+    title = "population"
+  ),
+  yaxis = list(
+    title = "number of convenience stores"
+  )
+)
+```
+
+```{r}
+#| title: 各都道府県の人口とコンビニの店舗数の関係 + 年
+
+plot_ly(
+  data = prefectures_data,
+  x = ~population,
+  y = ~number_of_stores,
+  color = ~year,
+  type = "scatter",
+  mode = "markers",
+  hoverinfo = "text",
+  text = ~paste(
+    "</br> number of convenience stores: ", number_of_stores,
+    "</br> population: ", population,
+    "</br> prefecture: ", prefecture,
+    "</br> year: ", year
+  )
+) %>% layout(
+  xaxis = list(
+    title = "population"
+  ),
+  yaxis = list(
+    title = "number of convenience stores"
+  )
+)
+```
+
+## Row {.tabset}
+
+```{r}
+#| title: 各都道府県の人口1万人当たりのコンビニの店舗数
+
+plot_ly(
+  data = prefectures_data,
+  x = ~year,
+  y = ~per_10000_population,
+  type = "box",
+  mode = "markers",
+  hoverinfo = "text",
+  text = ~paste(
+    "</br> number of convenience stores: ", number_of_stores,
+    "</br> population: ", population,
+    "</br> prefecture: ", prefecture,
+    "</br> year: ", year
+  )
+) %>% layout(
+  xaxis = list(
+    title = "year"
+  ),
+  yaxis = list(
+    title = "number of convenience stores per 10000 population"
+  )
+)
+```
+
+```{r}
+#| title: 人口1万人当たりのコンビニの店舗数の全国平均 (東京都を除く)
+year_vec <- c(2012:2018)
+average_per_10000_population_vec <- c()
+range <- nrow(prefectures_data) %/% 47
+
+for (i in 1:range) {
+  start <- 47 * (i - 1) + 1
+  end <- start + 46
+  tokyo <- start + 12
+  average_per_10000_population <- (sum(prefectures_data$per_10000_population[start:end]) - prefectures_data$per_10000_population[tokyo] ) / 46
+  average_per_10000_population_vec <- append(average_per_10000_population_vec, average_per_10000_population)
+}
+
+average_per_10000_population_data <- data.frame(
+  year = year_vec,
+  average_per_10000_population = average_per_10000_population_vec
+)
+
+ave_bar <- ggplot(
+  average_per_10000_population_data,
+  aes(
+    x = year,
+    y = average_per_10000_population
+  )
+) + geom_bar(
+  stat = "identity"
+) + labs(
+  x = "year",
+  y = "national average number of convenience stores per 10000 population",
+) + scale_x_continuous(
+  breaks = seq(2012, 2018, 1)
+)
+
+ave_bar %>% plotly::ggplotly()
+```
 
 ## Row
 
