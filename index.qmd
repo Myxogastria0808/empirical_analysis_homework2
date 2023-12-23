@@ -145,19 +145,18 @@ $$
 
 ```{r}
 #| title: 全国のコンビニエンスストアの店舗数の推移
-number_of_stores_bar <- ggplot(japan_data) +
+
+ggplot(japan_data) +
   geom_bar(aes(x = japan_data$year, y = japan_data$number_of_stores), stat="identity") +
   labs(x = "year", y = "number of convenience stores") +
   scale_x_continuous(breaks = seq(1983, 2020,1)) +
   theme(axis.text.x = element_text(angle=60, vjust=1, hjust=1))
-
-number_of_stores_bar %>% plotly::ggplotly()
 ```
 
 ```{r}
 #| title: 日本のコンビニエンスストアの増加率 (前年比)
 
-YoY_bar <- ggplot(japan_data) +
+ggplot(japan_data) +
   geom_bar(aes(x = japan_data$year, y = japan_data$YoY, fill = japan_data$YoY < 0), stat="identity") +
   labs(x = "year", y = "percentage increase in the number of convenience stores") +
   scale_x_continuous(breaks = seq(1983, 2020,1)) +
@@ -165,8 +164,6 @@ YoY_bar <- ggplot(japan_data) +
     legend.position = "none",
     axis.text.x = element_text(angle=60, vjust=1, hjust=1)
   )
-
-YoY_bar %>% plotly::ggplotly()
 ```
 
 ## Row {.tabset}
@@ -345,22 +342,36 @@ average_per_10000_population_data <- data.frame(
   average_per_10000_population = average_per_10000_population_vec
 )
 
-ave_bar <- ggplot(
-  average_per_10000_population_data,
-  aes(
-    x = year,
-    y = average_per_10000_population
-  )
-) + geom_bar(
-  stat = "identity"
-) + labs(
-  x = "year",
-  y = "national average number of convenience stores per 10000 population",
-) + scale_x_continuous(
-  breaks = seq(2012, 2018, 1)
-)
+# ave_bar <- ggplot(
+#   average_per_10000_population_data,
+#   aes(
+#     x = year,
+#     y = average_per_10000_population
+#   )
+# ) + geom_bar(
+#   stat = "identity"
+# ) + labs(
+#   x = "year",
+#   y = "national average number of convenience stores per 10000 population",
+# ) + scale_x_continuous(
+#   breaks = seq(2012, 2018, 1)
+# )
 
-ave_bar %>% plotly::ggplotly()
+# ave_bar %>% plotly::ggplotly()
+
+plot_ly(
+  data = average_per_10000_population_data,
+  x = ~year,
+  y = ~average_per_10000_population,
+  type = "bar",
+  marker = list(
+    color = '#8ebad9',
+    line = list(color = '#5799c7', width = 1.5)
+  )
+) %>% layout(
+  xaxis = list(title = "year"),
+  yaxis = list(title = "national average number of convenience stores per 10000 population")
+)
 ```
 
 ## Row
