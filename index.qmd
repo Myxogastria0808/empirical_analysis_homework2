@@ -61,6 +61,39 @@ prefectures_data <- cbind(
   prefectures_data,
   "per_10000_population" = per_10000_population_vec
 )
+
+#population_stores_data
+population_stores_data <- read.csv("FEI_PREF_231224133401.csv")
+
+YoY_population_vec <- c()
+for (i in 1:nrow(population_stores_data)) {
+  if (i == 1) {
+    YoY_population <- 0
+  } else {
+    YoY_population <- (population_stores_data$population[i] - population_stores_data$population[i - 1]) / population_stores_data$population[i - 1]
+  }
+    YoY_population_vec <- append(YoY_population_vec, YoY_population)
+}
+
+population_stores_data <- cbind(
+  population_stores_data,
+  "YoY_population" = YoY_population_vec
+)
+
+YoY_number_of_stores_vec <- c()
+for (i in 1:nrow(population_stores_data)) {
+  if (i == 1) {
+    YoY_number_of_stores <- 0
+  } else {
+    YoY_number_of_stores <- (population_stores_data$number_of_stores[i] - population_stores_data$number_of_stores[i - 1]) / population_stores_data$number_of_stores[i - 1]
+  }
+    YoY_number_of_stores_vec <- append(YoY_number_of_stores_vec, YoY_number_of_stores)
+}
+
+population_stores_data <- cbind(
+  population_stores_data,
+  "YoY_number_of_stores" = YoY_number_of_stores_vec
+)
 ```
 
 # Main
@@ -143,19 +176,18 @@ $$
 
 ## Row {.tabset}
 
+::: {.card title="全国のコンビニエンスストアの店舗数の推移"}
 ```{r}
-#| title: 全国のコンビニエンスストアの店舗数の推移
-
 ggplot(japan_data) +
   geom_bar(aes(x = japan_data$year, y = japan_data$number_of_stores), stat="identity") +
   labs(x = "year", y = "number of convenience stores") +
   scale_x_continuous(breaks = seq(1983, 2020,1)) +
   theme(axis.text.x = element_text(angle=60, vjust=1, hjust=1))
 ```
+:::
 
+::: {.card title="日本のコンビニエンスストアの増加率 (前年比)"}
 ```{r}
-#| title: 日本のコンビニエンスストアの増加率 (前年比)
-
 ggplot(japan_data) +
   geom_bar(aes(x = japan_data$year, y = japan_data$YoY, fill = japan_data$YoY < 0), stat="identity") +
   labs(x = "year", y = "percentage increase in the number of convenience stores") +
@@ -165,6 +197,8 @@ ggplot(japan_data) +
     axis.text.x = element_text(angle=60, vjust=1, hjust=1)
   )
 ```
+>注) 日本のコンビニエンスストアの増加率 (前年比)のグラフの1983年には、0を代入しています。
+:::
 
 ## Row {.tabset}
 
@@ -201,6 +235,63 @@ $$
 $$
 3. 計算結果を確認する。
 
+:::
+
+## Row {.tabset}
+
+```{r}
+#| title: 全国の総人口の増減率（前年比）
+
+plot_ly(
+  data = population_stores_data,
+  x = ~year,
+  y = ~population,
+  type = "bar",
+  marker = list(
+    color = '#8ebad9',
+    line = list(color = '#5799c7', width = 1.5)
+  )
+) %>% layout(
+  xaxis = list(title = "year"),
+  yaxis = list(title = "population")
+)
+```
+
+```{r}
+#| title: 全国のコンビニの店舗数の増減率（前年比）
+
+plot_ly(
+  data = population_stores_data,
+  x = ~year,
+  y = ~number_of_stores,
+  type = "bar",
+  marker = list(
+    color = '#8ebad9',
+    line = list(color = '#5799c7', width = 1.5)
+  )
+) %>% layout(
+  xaxis = list(title = "year"),
+  yaxis = list(title = "number of convenience stores")
+)
+```
+
+## Row
+
+::: {.card title="使用したデータ"}
+```{r}
+DT::datatable(population_stores_data)
+```
+> 注) `YoY_population`と`YoY_number_of_stores`の2012年には、0を代入しています。
+
+> 各都道府県の人口のデータの引用元: https://www.e-stat.go.jp/regional-statistics/ssdsview/prefectures を加工して作成
+
+> 出典: 政府統計の総合窓口(e-Stat)（https://www.e-stat.go.jp/）
+
+> データ引用元(一部、元データに追加しているデータがあります。): https://honkawa2.sakura.ne.jp/5616.html
+
+> 注) 国内のフランチャイズチェーン本部を対象とした年1回の調査(5~6月)による。店舗数は各チェーンの加盟店・直営店数(国内)の合計 (https://honkawa2.sakura.ne.jp/5616.htmlより引用)
+
+> 資料: 日本フランチャイズチェーン協会「JFA フランチャイズチェーン統計調査」(https://honkawa2.sakura.ne.jp/5616.htmlより引用)
 :::
 
 ## Row
@@ -324,7 +415,7 @@ plot_ly(
 ```
 
 ```{r}
-#| title: 人口1万人当たりのコンビニの店舗数の全国平均 (東京都を除く)
+#| title: 人口1万人当たりのコンビニの店舗数の全国平均 (東京都と北海道を除く)
 year_vec <- c(2012:2018)
 average_per_10000_population_vec <- c()
 range <- nrow(prefectures_data) %/% 47
@@ -333,7 +424,7 @@ for (i in 1:range) {
   start <- 47 * (i - 1) + 1
   end <- start + 46
   tokyo <- start + 12
-  average_per_10000_population <- (sum(prefectures_data$per_10000_population[start:end]) - prefectures_data$per_10000_population[tokyo] ) / 46
+  average_per_10000_population <- (sum(prefectures_data$per_10000_population[start:end]) - prefectures_data$per_10000_population[tokyo] - prefectures_data$per_10000_population[start]) / 45
   average_per_10000_population_vec <- append(average_per_10000_population_vec, average_per_10000_population)
 }
 
