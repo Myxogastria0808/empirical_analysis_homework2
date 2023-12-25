@@ -2,40 +2,40 @@ library(ggplot2)
 library(ggsci)
 
 
-# japan_data <- read.csv("homework_data.csv")
+japan_data <- read.csv("homework_data.csv")
 
-# YoY_vec <- c()
-# for (i in 1:nrow(japan_data)) {
-#   if (i == 1) {
-#     YoY <- 0
-#   } else {
-#     YoY <- (japan_data$number_of_stores[i] - japan_data$number_of_stores[i - 1]) / japan_data$number_of_stores[i - 1]
-#   }
-#     YoY_vec <- append(YoY_vec, YoY)
-# }
+YoY_vec <- c()
+for (i in 1:nrow(japan_data)) {
+  if (i == 1) {
+    YoY <- 0
+  } else {
+    YoY <- (japan_data$number_of_stores[i] - japan_data$number_of_stores[i - 1]) / japan_data$number_of_stores[i - 1]
+  }
+    YoY_vec <- append(YoY_vec, YoY)
+}
 
-# japan_data <- cbind(
-#   japan_data,
-#   "YoY" = YoY_vec
-# )
+japan_data <- cbind(
+  japan_data,
+  "YoY" = YoY_vec
+)
 
-# print(japan_data)
+print(japan_data)
 
-# number_of_stores_graph <- ggplot(japan_data) +
-#   geom_bar(aes(x = japan_data$year, y = japan_data$number_of_stores), stat="identity") +
-#   labs(x = "年", y = "店舗数（店）") + 
-#   ggtitle("日本のコンビニエンスストアの店舗数の推移") +
-#   theme_bw(base_family = "HiraKakuProN-W3")
+number_of_stores_graph <- ggplot(japan_data) +
+  geom_bar(aes(x = japan_data$year, y = japan_data$number_of_stores), stat="identity") +
+  labs(x = "年", y = "店舗数（店）") +
+  ggtitle("日本のコンビニエンスストアの店舗数の推移") +
+  theme_bw(base_family = "HiraKakuProN-W3")
 
-# print(number_of_stores_graph)
+print(number_of_stores_graph)
 
-# YoY_graph <- ggplot(japan_data) +
-#   geom_bar(aes(x = japan_data$year, y = japan_data$YoY, fill = japan_data$YoY < 0), stat="identity") +
-#   labs(x = "年", y = "店舗の増加率") + 
-#   ggtitle("日本のコンビニエンスストアの増加率 (前年比)") +
-#   theme_bw(base_family = "HiraKakuProN-W3")
+YoY_graph <- ggplot(japan_data) +
+  geom_bar(aes(x = japan_data$year, y = japan_data$YoY, fill = japan_data$YoY < 0), stat="identity") +
+  labs(x = "年", y = "店舗の増加率") +
+  ggtitle("日本のコンビニエンスストアの増加率 (前年比)") +
+  theme_bw(base_family = "HiraKakuProN-W3")
 
-# print(YoY_graph)
+print(YoY_graph)
 
 
 
@@ -71,36 +71,36 @@ prefectures_data <- cbind(
 library(plotly)
 library(magrittr)
 
-# graph <- plot_ly(
-#   data = prefectures_data,
-#   x = ~population,
-#   y = ~number_of_stores,
-#   split = ~prefecture,
-#   type = "scatter"
-# )
+graph <- plot_ly(
+  data = prefectures_data,
+  x = ~population,
+  y = ~number_of_stores,
+  split = ~prefecture,
+  type = "scatter"
+)
 
-# print(graph)
+print(graph)
 
-# graph <- plot_ly(
-#   data = prefectures_data,
-#   x = ~population,
-#   y = ~number_of_stores,
-#   color = ~year,
-#   type = "scatter"
-# )
+graph <- plot_ly(
+  data = prefectures_data,
+  x = ~population,
+  y = ~number_of_stores,
+  color = ~year,
+  type = "scatter"
+)
 
-# print(graph)
+print(graph)
 
-# graph <- plot_ly(
-#   data = prefectures_data,
-#   x = ~population,
-#   y = ~year,
-#   z = ~number_of_stores,
-#   split = ~prefecture,
-#   type = "scatter3d"
-# )
+graph <- plot_ly(
+  data = prefectures_data,
+  x = ~population,
+  y = ~year,
+  z = ~number_of_stores,
+  split = ~prefecture,
+  type = "scatter3d"
+)
 
-# print(graph)
+print(graph)
 
 ###############################################
 
